@@ -1,58 +1,147 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Toko Buku API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API katalog buku dibuat dengan Laravel untuk praktikum Teknologi Web Service (Pertemuan 9: Database dan CRUD API). API menyimpan data kategori dan buku ke database, memvalidasi input, dan menjawab dengan status code yang tepat.
 
-## About Laravel
+## Teknologi
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.3
+- Laravel 13
+- SQLite (bawaan Laravel)
+- Postman untuk pengujian
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Cara Menjalankan
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/zahraayua/toko-buku.git
+cd toko-buku
+composer install
+copy .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Jika file `database/database.sqlite` belum ada, buat file kosong dengan nama itu, lalu jalankan `php artisan migrate`.
 
-## Contributing
+API berjalan di `http://127.0.0.1:8000/api`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Semua request wajib mengirim header `Accept: application/json`.
 
-## Code of Conduct
+## Struktur Data
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Category**
 
-## Security Vulnerabilities
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | integer | Primary key |
+| name | string (100) | Wajib, unik |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Book**
 
-## License
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | integer | Primary key |
+| category_id | integer | Wajib, harus ada di tabel categories |
+| title | string (200) | Wajib |
+| author | string (100) | Wajib |
+| isbn | string (20) | Opsional, unik |
+| price | integer | Wajib, minimal 0 (rupiah) |
+| stock | integer | Wajib, minimal 0 |
+| description | text | Opsional |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Satu kategori memiliki banyak buku. Kategori tidak bisa dihapus selama masih memiliki buku.
+
+## Daftar Endpoint
+
+| Method | Endpoint | Keterangan | Status |
+|---|---|---|---|
+| GET | /api/categories | Daftar kategori | 200 |
+| POST | /api/categories | Buat kategori | 201, 422 |
+| GET | /api/categories/{id} | Detail kategori beserta bukunya | 200, 404 |
+| PUT/PATCH | /api/categories/{id} | Ubah kategori | 200, 404, 422 |
+| DELETE | /api/categories/{id} | Hapus kategori | 204, 404, 409 |
+| GET | /api/books | Daftar buku | 200 |
+| POST | /api/books | Buat buku | 201, 422 |
+| GET | /api/books/{id} | Detail buku | 200, 404 |
+| PUT/PATCH | /api/books/{id} | Ubah buku (boleh sebagian) | 200, 404, 422 |
+| DELETE | /api/books/{id} | Hapus buku | 204, 404 |
+
+## Contoh Request
+
+**Buat kategori**
+
+```
+POST /api/categories
+{
+    "name": "Novel"
+}
+```
+
+**Buat buku**
+
+```
+POST /api/books
+{
+    "category_id": 1,
+    "title": "Laskar Pelangi",
+    "author": "Andrea Hirata",
+    "price": 89000,
+    "stock": 12,
+    "isbn": "9789792248616"
+}
+```
+
+**Contoh respons (201)**
+
+```json
+{
+    "data": {
+        "id": 2,
+        "title": "Laskar Pelangi",
+        "author": "Andrea Hirata",
+        "isbn": "9789792248616",
+        "price": 89000,
+        "stock": 12,
+        "description": null,
+        "category": {
+            "id": 1,
+            "name": "Novel"
+        },
+        "created_at": "2026-11-13T05:29:31.000000Z"
+    }
+}
+```
+
+## Format Respons
+
+- Data dikirim di dalam kunci `data`.
+- Error memiliki kunci `message`, dan error validasi memiliki kunci `errors`.
+- Semua error pada `/api/*` selalu berformat JSON.
+
+## Hasil Pengujian
+
+| Skenario | Hasil |
+|---|---|
+| Buat kategori | 201 |
+| Buat kategori dengan nama yang sama | 422 |
+| Buat buku lengkap | 201 |
+| Buat buku tanpa title dan price negatif | 422 |
+| Buat buku dengan ISBN yang sudah ada | 422 |
+| Buat buku tanpa ISBN | 201 (isbn bernilai null) |
+| Daftar buku | 200 |
+| Detail buku yang tidak ada | 404 (JSON) |
+| Ubah stok buku | 200 |
+| Ubah ISBN dengan ISBN milik sendiri | 200 |
+| Hapus kategori yang masih punya buku | 409 |
+| Hapus buku | 204 |
+
+Koleksi Postman tersedia di file `Toko-Buku-API.postman_collection.json` (jika disertakan di repo).
+
+## Tugas Tambahan
+
+Kolom `isbn` (teks, unik, boleh kosong) ditambahkan lewat migration baru `add_isbn_to_books_table`, lalu ditambahkan pada `$fillable` model `Book`, aturan validasi di `BookController`, dan `BookResource`.
+
+## Penulis
+
+- Nama: (Zahra Ayu Adinda)
+- NIM: (24.0504.0022)

@@ -1,0 +1,12 @@
+$kind: http-request
+description: ""
+url: http://127.0.0.1:8000/api/books
+method: POST
+headers:
+  Accept: application/json
+body:
+  type: json
+  content: "{\"category_id\": 1, \"author\": \"Andrea Hirata\", \r
+
+    \"price\": 89000, \"stock\": 12}"
+order: 4000
